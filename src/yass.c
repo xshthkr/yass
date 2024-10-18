@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #define MAX_LINE 1024
 #define MAX_ARGS 64
@@ -73,13 +75,36 @@ int parse_line(char *line, command *cmd){
 
 }
 
+int execute(command cmd) {
+    if (strcmp(cmd.name, "exit") == 0) {
+        return 0;
+    }
+
+    __pid_t pid = fork();
+    if (pid == -1) {
+        perror("execute: fork failed");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        if (execvp(cmd.name, cmd.args) == -1) {
+            perror("execute: execvp failed");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        wait(NULL);
+    }
+
+    return 1;
+}
+
 int main(int argc, char **argv) {
 
+    int status = 1;
     command cmd;
 
     char *line = NULL;
 
-    while (1) {
+    while (status) {
+        
         printf("yass > ");
         line = read_line();
         
@@ -96,11 +121,8 @@ int main(int argc, char **argv) {
             // }
             // printf("\n");
 
-            // if (strcmp(cmd.name, "exit") == 0) {
-            //     free(line);
-            //     free(cmd.args);
-            //     exit(EXIT_SUCCESS);
-            // }
+            status = execute(cmd);
+            free(cmd.args);
         }
 
     }
