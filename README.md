@@ -30,11 +30,7 @@ Once YASS is running, you will see a prompt `yass >`. Enter commands as you norm
 
 ### Commands
 
-Commands are stored in the form of a struct. The struct `command` includes:
-
-- `char* name` - the name of the command.
-- `char** args` - an array of arguments passed to the command.
-- `int argc` - the number of arguments passed.
+Commands are stored in the form of a struct. The struct `command` includes the name of the command, an array of arguments passed to the command, and the number of arguments passed.
 
 ### Receiving Input
 
