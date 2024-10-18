@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_LINE 1024
+#define MAX_ARGS 64
+
+
 typedef struct {
     char *name;
     char **args;
@@ -17,11 +21,56 @@ char* read_line() {
         if (feof(stdin)) {
             exit(EXIT_SUCCESS);
         } else {
-            perror("readline");
+            perror("readline: getline failed");
             exit(EXIT_FAILURE);
         }
     }
     return line;
+}
+
+int parse_line(char *line, command *cmd){
+
+    int buffersize = MAX_ARGS;
+    int pos = 0;
+
+    char **tokens = malloc(MAX_ARGS * sizeof(char*));
+    char *token = strtok(line, " \t\n\r\a");
+
+    if (token == NULL) {
+        perror("parse_line: memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    while (token != NULL) {
+        tokens[pos++] = token;
+        
+        if (pos >= buffersize) {
+            buffersize += MAX_ARGS;
+            tokens = realloc(tokens, buffersize * sizeof(char*));
+
+            if (tokens == NULL) {
+                perror("parse_line: memory allocation failed");
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        token = strtok(NULL, " \t\n\r\a");
+    }
+
+    tokens[pos] = NULL;
+
+    if (pos == 0) {
+        free(tokens);
+        perror("parse_line: no command entered");
+        return 0;
+    }
+
+    cmd->name = tokens[0];
+    cmd->args = tokens;
+    cmd->argc = pos;
+
+    return 1;
+
 }
 
 int main(int argc, char **argv) {
@@ -33,10 +82,25 @@ int main(int argc, char **argv) {
     while (1) {
         printf("yass > ");
         line = read_line();
-        printf("%s", line); // test if input is read correctly
+        
+        // test if line is read correctly
+        // printf("%s", line); 
 
-        if (strcmp(line, "exit\n") == 0) {
-            break;
+        if (parse_line(line, &cmd)) {
+
+            // test if command is parsed correctly
+            // printf("Cmd: %s\n", cmd.name);
+            // printf("Args: ");
+            // for (int i = 1; i < cmd.argc; i++) {
+            //     printf("%s ", cmd.args[i]);
+            // }
+            // printf("\n");
+
+            // if (strcmp(cmd.name, "exit") == 0) {
+            //     free(line);
+            //     free(cmd.args);
+            //     exit(EXIT_SUCCESS);
+            // }
         }
 
     }
